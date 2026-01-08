@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace NauSzkol___desktopowa_
 {
-    internal class Exercise
+    public class Exercise
     {
         public int Id { get; set; }
         public string Title { get; set; }
@@ -15,7 +15,10 @@ namespace NauSzkol___desktopowa_
         public string Status { get; set; }
         public string Priority { get; set; }
         public string Tag { get; set; }
+
         public int OwnerId { get; set; }
         public int CreatorId { get; set; }
+        public string OwnerName { get; set; }
+        public string CreatorName { get; set; }
     }
 }

@@ -42,12 +42,10 @@
             lblAutor = new Label();
             btnZapiszZadanie = new Button();
             btnAnulujZadanie = new Button();
-            numWykonawca = new NumericUpDown();
-            numAutor = new NumericUpDown();
             lblPriorytet = new Label();
             cmbBoxPriorytet = new ComboBox();
-            ((System.ComponentModel.ISupportInitialize)numWykonawca).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)numAutor).BeginInit();
+            cmbBoxWykonawca = new ComboBox();
+            cmbBoxAutor = new ComboBox();
             SuspendLayout();
             // 
             // txtBoxTytul
@@ -148,7 +146,7 @@
             // lblAutor
             // 
             lblAutor.AutoSize = true;
-            lblAutor.Location = new Point(151, 277);
+            lblAutor.Location = new Point(175, 277);
             lblAutor.Name = "lblAutor";
             lblAutor.Size = new Size(83, 15);
             lblAutor.TabIndex = 12;
@@ -176,20 +174,6 @@
             btnAnulujZadanie.UseVisualStyleBackColor = true;
             btnAnulujZadanie.Click += btnAnulujZadanie_Click;
             // 
-            // numWykonawca
-            // 
-            numWykonawca.Location = new Point(9, 295);
-            numWykonawca.Name = "numWykonawca";
-            numWykonawca.Size = new Size(120, 23);
-            numWykonawca.TabIndex = 16;
-            // 
-            // numAutor
-            // 
-            numAutor.Location = new Point(148, 295);
-            numAutor.Name = "numAutor";
-            numAutor.Size = new Size(120, 23);
-            numAutor.TabIndex = 17;
-            // 
             // lblPriorytet
             // 
             lblPriorytet.AutoSize = true;
@@ -207,15 +191,31 @@
             cmbBoxPriorytet.Size = new Size(275, 23);
             cmbBoxPriorytet.TabIndex = 19;
             // 
+            // cmbBoxWykonawca
+            // 
+            cmbBoxWykonawca.FormattingEnabled = true;
+            cmbBoxWykonawca.Location = new Point(12, 295);
+            cmbBoxWykonawca.Name = "cmbBoxWykonawca";
+            cmbBoxWykonawca.Size = new Size(142, 23);
+            cmbBoxWykonawca.TabIndex = 20;
+            // 
+            // cmbBoxAutor
+            // 
+            cmbBoxAutor.FormattingEnabled = true;
+            cmbBoxAutor.Location = new Point(175, 295);
+            cmbBoxAutor.Name = "cmbBoxAutor";
+            cmbBoxAutor.Size = new Size(142, 23);
+            cmbBoxAutor.TabIndex = 21;
+            // 
             // FormularzDodawaniaZadan
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(600, 376);
+            Controls.Add(cmbBoxAutor);
+            Controls.Add(cmbBoxWykonawca);
             Controls.Add(cmbBoxPriorytet);
             Controls.Add(lblPriorytet);
-            Controls.Add(numAutor);
-            Controls.Add(numWykonawca);
             Controls.Add(btnAnulujZadanie);
             Controls.Add(btnZapiszZadanie);
             Controls.Add(lblAutor);
@@ -234,8 +234,7 @@
             MinimumSize = new Size(616, 415);
             Name = "FormularzDodawaniaZadan";
             Text = "FormularzDodawaniaZadan";
-            ((System.ComponentModel.ISupportInitialize)numWykonawca).EndInit();
-            ((System.ComponentModel.ISupportInitialize)numAutor).EndInit();
+            Load += FormularzDodawaniaZadan_Load;
             ResumeLayout(false);
             PerformLayout();
         }
@@ -256,9 +255,9 @@
         private Label lblAutor;
         private Button btnZapiszZadanie;
         private Button btnAnulujZadanie;
-        private NumericUpDown numWykonawca;
-        private NumericUpDown numAutor;
         private Label lblPriorytet;
         private ComboBox cmbBoxPriorytet;
+        private ComboBox cmbBoxWykonawca;
+        private ComboBox cmbBoxAutor;
     }
 }
