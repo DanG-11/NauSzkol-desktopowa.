@@ -10,6 +10,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.VisualStyles;
+using static System.Windows.Forms.DataFormats;
 
 namespace NauSzkol___desktopowa_
 {
@@ -18,27 +19,53 @@ namespace NauSzkol___desktopowa_
         private Exercise _exercise;
         private bool _isEdit;
         private readonly HttpClient _httpClient;
-        //Konstruktor formularza dodawania zadań
-        public FormularzDodawaniaZadan(HttpClient client)
+        private readonly string _token = "4b58f23b-2389-4f6e-b105-9269029ad3ac";
+        private readonly NauSzkolMainForm _mainForm;
+        // Konstruktor do dodawania nowego zadania
+        public FormularzDodawaniaZadan(HttpClient client, string token, NauSzkolMainForm mainForm)
         {
             InitializeComponent();
             _httpClient = client;
-
+            _mainForm = mainForm;
             _exercise = new Exercise();
             _isEdit = false;
         }
 
-        //Wypełnianie formularza danymi zadania do edycji
-        public FormularzDodawaniaZadan(HttpClient client, Exercise exercise)
+        // Konstruktor do edycji zadania
+        public FormularzDodawaniaZadan(HttpClient client, string token, Exercise exercise, NauSzkolMainForm mainForm)
         {
             InitializeComponent();
             _httpClient = client;
+            _token = token;
+            _mainForm = mainForm;
 
             _exercise = exercise;
             _isEdit = true;
 
             Text = "Edytuj zadanie";
             btnZapiszZadanie.Text = "Zapisz zmiany";
+        }
+
+        private async Task<string> PobierzTokenAsync()
+        {
+            var loginData = new
+            {
+                Username = "teacher1",
+                Password = "hash2"
+            };
+
+            var content = new StringContent(
+                JsonSerializer.Serialize(loginData),
+                Encoding.UTF8,
+                "application/json"
+            );
+
+            var response = await _httpClient.PostAsync("https://localhost:7266/user/login", content);
+            response.EnsureSuccessStatusCode();
+
+            var json = await response.Content.ReadAsStringAsync();
+            var doc = JsonDocument.Parse(json);
+            return doc.RootElement.GetProperty("token").GetString();
         }
 
         private async Task FillComboBoxes()
@@ -60,9 +87,11 @@ namespace NauSzkol___desktopowa_
 
         private void FillForm()
         {
-            txtBoxTytul.Text = _exercise.Title;
-            txtBoxOpis.Text = _exercise.Description;
-            dtpTerminZadania.Value = _exercise.DueDate;
+            if (_exercise == null) return; // nic nie rób jeśli brak danych
+
+            txtBoxTytul.Text = _exercise.Title ?? "";
+            txtBoxOpis.Text = _exercise.Description ?? "";
+            dtpTerminZadania.Value = _exercise.DueDate != default ? _exercise.DueDate : DateTime.Today;
 
             cmbBoxStatus.SelectedItem = _exercise.Status;
             cmbBoxPriorytet.SelectedItem = _exercise.Priority;
@@ -80,28 +109,56 @@ namespace NauSzkol___desktopowa_
 
         private async void btnZapiszZadanie_Click(object sender, EventArgs e)
         {
-            _exercise.Title = txtBoxTytul.Text;
-            _exercise.Description = txtBoxOpis.Text;
-            _exercise.DueDate = dtpTerminZadania.Value;
-            _exercise.Status = cmbBoxStatus.Text;
-            _exercise.Priority = cmbBoxPriorytet.Text;
-            _exercise.Tag = cmbBoxPrzedmiot.Text;
-            _exercise.OwnerId = (int)cmbBoxAutor.SelectedValue;
-            _exercise.CreatorId = (int)cmbBoxAutor.SelectedValue;
-
-            var json = JsonSerializer.Serialize(_exercise);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            if (_isEdit)
+            try
             {
-                await _httpClient.PutAsync($"https://localhost:7266/exercises/{_exercise.Id}", content);
-            }
-            else
-            {
-                await _httpClient.PostAsync("https://localhost:7266/exercises", content);
-            }
+                var exercise = new Exercise
+                {
+                    Id = _exercise.Id,
+                    Title = txtBoxTytul.Text,
+                    Description = txtBoxOpis.Text,
+                    Status = cmbBoxStatus.SelectedItem?.ToString(),
+                    Priority = cmbBoxPriorytet.SelectedItem?.ToString(),
+                    Tag = cmbBoxPrzedmiot.SelectedItem?.ToString(),
+                    DueDate = dtpTerminZadania.Value,
+                    OwnerId = int.Parse(cmbBoxWykonawca.SelectedValue.ToString()),
+                    CreatorId = int.Parse(cmbBoxAutor.SelectedValue.ToString())
+                };
 
-            DialogResult = DialogResult.OK;
+                // Pobierz token nauczyciela
+                string token = await PobierzTokenAsync();
+
+                var request = new HttpRequestMessage(
+                    _isEdit ? HttpMethod.Put : HttpMethod.Post,
+                    _isEdit ? $"https://localhost:7266/exercises/{exercise.Id}" : "https://localhost:7266/exercises"
+                );
+
+                request.Content = new StringContent(
+                    JsonSerializer.Serialize(exercise),
+                    Encoding.UTF8,
+                    "application/json"
+                );
+
+                request.Headers.Authorization =
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+                var response = await _httpClient.SendAsync(request);
+                response.EnsureSuccessStatusCode();
+
+                MessageBox.Show("Zapisano pomyślnie!");
+
+                if (_mainForm != null)
+                    await _mainForm.LoadExercises();
+
+                this.Close();
+            }
+            catch (HttpRequestException)
+            {
+                MessageBox.Show("Brak połączenia z API lub błąd sieci.");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Nieoczekiwany błąd: " + ex.Message);
+            }
         }
 
         private void btnAnulujZadanie_Click(object sender, EventArgs e)
